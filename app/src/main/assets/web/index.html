@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920, user-scalable=no">
+<title>Home</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="stage" class="stage" tabindex="0">
+  <div class="bg">
+    <img id="wallA" class="wall-img on" alt=""><img id="wallB" class="wall-img" alt="">
+    <img id="bgBlur" class="bg-blur" alt="">
+  </div>
+  <div class="bg-dim"></div>
+  <div class="bg-deep"></div>
+
+  <div id="page" class="page">
+    <section class="shelf">
+      <nav id="utils" class="utils"></nav>
+      <div id="utilName" class="util-name"></div>
+
+      <section class="corner">
+        <div class="time"><span id="time">--:--</span><span id="ampm" class="ampm"></span></div>
+        <div id="date" class="date"></div>
+        <div id="weather" class="weather hidden">
+          <span id="wIcon" class="w-icon"></span><span id="wTemp" class="w-temp"></span><span id="wLine" class="w-line"></span>
+        </div>
+      </section>
+      <div id="credit" class="credit"></div>
+    </section>
+
+  <section id="grid" class="grid"></section>
+  </div>
+
+  <aside id="panel" class="panel hidden">
+    <div id="panelTitle" class="panel-title"></div>
+    <div id="panelList" class="panel-list"></div>
+    <div id="panelHint" class="panel-hint"></div>
+  </aside>
+  <div id="toast" class="toast hidden"></div>
+</main>
+<script src="wallpapers.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

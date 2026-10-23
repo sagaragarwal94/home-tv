@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Setup help and common errors
+    url: https://github.com/sagaragarwal94/home-tv/blob/main/docs/FAQ.md
+    about: Most build, adb and launcher problems are answered here.
