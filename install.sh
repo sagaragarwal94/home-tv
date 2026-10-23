@@ -41,11 +41,51 @@ if [ "$1" != "--no-build" ]; then
   [ -n "$ANDROID_HOME" ] || { echo "Android SDK not found. See docs/SETUP.md (step 2)."; exit 1; }
   echo "sdk.dir=$ANDROID_HOME" > local.properties
 
-  chmod +x gradlew
-  ./gradlew --no-daemon assembleDebug
+  # --- Gradle 8.7: reuse a copy already on this Mac before downloading ----------
+  # The wrapper only reuses a download made from the exact same URL, so look for
+  # any Gradle 8.7 that's already unpacked (or a zip in Downloads) and run it directly.
+  GRADLE_VER=8.7
+  LOCAL_GRADLE_DIR="$HOME/.gradle/home-tv/gradle-$GRADLE_VER"
+  find_gradle() {
+    for g in "$HOME"/.gradle/wrapper/dists/gradle-$GRADLE_VER-bin/*/gradle-$GRADLE_VER/bin/gradle \
+             "$HOME"/.gradle/wrapper/dists/gradle-$GRADLE_VER-all/*/gradle-$GRADLE_VER/bin/gradle \
+             "$LOCAL_GRADLE_DIR/bin/gradle"; do
+      [ -x "$g" ] && { echo "$g"; return 0; }
+    done
+    return 1
+  }
+  unpack_gradle() {   # $1 = path to gradle-8.7-bin.zip
+    mkdir -p "$HOME/.gradle/home-tv"
+    unzip -qo "$1" -d "$HOME/.gradle/home-tv" && chmod +x "$LOCAL_GRADLE_DIR/bin/gradle"
+  }
+
+  GRADLE="$(find_gradle || true)"
+  if [ -z "$GRADLE" ] && [ -f "$HOME/Downloads/gradle-$GRADLE_VER-bin.zip" ]; then
+    echo "Using ~/Downloads/gradle-$GRADLE_VER-bin.zip"
+    unpack_gradle "$HOME/Downloads/gradle-$GRADLE_VER-bin.zip" && GRADLE="$(find_gradle || true)"
+  fi
+
+  if [ -n "$GRADLE" ]; then
+    echo "Using Gradle at $GRADLE"
+    "$GRADLE" --no-daemon assembleDebug
+  else
+    chmod +x gradlew
+    if ! ./gradlew --no-daemon assembleDebug; then
+      echo
+      echo "Gradle wrapper couldn't download Gradle. Trying curl instead..."
+      ZIP="$HOME/Downloads/gradle-$GRADLE_VER-bin.zip"
+      curl -fL --retry 5 --retry-delay 3 --connect-timeout 30 -o "$ZIP" \
+        "https://services.gradle.org/distributions/gradle-$GRADLE_VER-bin.zip" \
+        || { echo "Download failed. See docs/FAQ.md -> 'Gradle download timeout'."; exit 1; }
+      unpack_gradle "$ZIP"
+      GRADLE="$(find_gradle)"
+      echo "Using Gradle at $GRADLE"
+      "$GRADLE" --no-daemon assembleDebug
+    fi
+  fi
 fi
 
-if [ "$1" = "--build-only" ]; then echo "Built: $APK"; exit 0; fi
+if [ "$1" = "--build-only" ]; then [ -f "$APK" ] && { echo "Built: $APK"; exit 0; } || { echo "Build finished but no APK at $APK"; exit 1; }; fi
 
 [ -f "$APK" ] || { echo "No APK at $APK - run ./install.sh without --no-build."; exit 1; }
 
